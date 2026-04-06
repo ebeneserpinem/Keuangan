@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Cloudflare Worker Web</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #0f172a;
+        color: white;
+        text-align: center;
+        padding: 50px;
+    }
+
+    h1 {
+        color: #38bdf8;
+    }
+
+    button {
+        padding: 12px 20px;
+        font-size: 16px;
+        border: none;
+        border-radius: 8px;
+        background: #38bdf8;
+        color: black;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #0ea5e9;
+    }
+
+    pre {
+        margin-top: 20px;
+        background: #020617;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: left;
+        overflow-x: auto;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>🚀 Cloudflare Worker Test</h1>
+
+<p>Klik tombol untuk mengambil data dari Worker API</p>
+
+<button onclick="loadData()">Ambil Data</button>
+
+<pre id="output">Belum ada data...</pre>
+
+<script>
+async function loadData() {
+
+    const output = document.getElementById("output");
+    output.textContent = "Loading...";
+
+    try {
+
+        // 🔴 GANTI URL INI DENGAN WORKER KAMU
+        const response = await fetch(
+            "finance-worker.ebeneserpinem6.workers.dev"
+        );
+
+        const data = await response.json();
+
+        output.textContent =
+            JSON.stringify(data, null, 2);
+
+    } catch (error) {
+        output.textContent =
+            "Error koneksi ke Worker:\n" + error;
+    }
+}
+</script>
+
+</body>
+</html>
