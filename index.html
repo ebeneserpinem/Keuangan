@@ -3,295 +3,344 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Sentinel Asset - Professional Edition</title>
+    <title>Sentinel X - Obsidian Asset Vault</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <!-- Premium Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    
+    <!-- Core Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
-        :root { 
-            --bg: #020617; 
-            --card: rgba(15, 23, 42, 0.7); 
-            --border: rgba(56, 189, 248, 0.2); 
-            --primary: #38bdf8; 
-            --success: #10b981; 
-            --danger: #f43f5e; 
-            --text: #f1f5f9; 
-            --glow: rgba(56, 189, 248, 0.3);
+        :root {
+            --primary: #0ea5e9;
+            --primary-glow: rgba(14, 165, 233, 0.3);
+            --success: #10b981;
+            --danger: #f43f5e;
+            --bg: #020617;
+            --card: rgba(15, 23, 42, 0.6);
+            --border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
         }
 
-        /* --- ANIMASI CSS --- */
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Smooth Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        body {
+            background: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            /* Mesh Background Effect */
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(14, 165, 233, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
         }
 
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
+        /* Animations */
+        @keyframes reveal {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        @keyframes pulseGlow {
-            0% { box-shadow: 0 0 5px var(--glow); }
-            50% { box-shadow: 0 0 20px var(--glow); }
-            100% { box-shadow: 0 0 5px var(--glow); }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
         }
 
-        /* --- BASIC SETUP --- */
-        * { box-sizing: border-box; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .animate-reveal { animation: reveal 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+
+        .container { max-width: 1300px; margin: auto; padding: 40px 20px; }
+
+        /* Glass Card */
+        .card {
+            background: var(--card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 30px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card:hover {
+            border-color: rgba(14, 165, 233, 0.4);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 20px var(--primary-glow);
+            transform: translateY(-5px);
+        }
+
+        /* Header Styling */
+        header {
+            display: flex; justify-content: space-between; align-items: flex-end;
+            margin-bottom: 40px;
+        }
+        .logo-area h1 { font-size: 28px; font-weight: 800; letter-spacing: -1px; }
+        .logo-area span { color: var(--primary); }
+
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-label { font-size: 12px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+        .stat-value { font-family: 'JetBrains Mono', monospace; font-size: 2.2rem; font-weight: 700; margin: 10px 0; }
+
+        /* Progress Circle Container */
+        .target-section {
+            display: grid; grid-template-columns: 350px 1fr; gap: 25px; margin-bottom: 30px;
+        }
+        @media (max-width: 900px) { .target-section { grid-template-columns: 1fr; } }
+
+        .gauge-container {
+            position: relative; height: 300px; display: flex; align-items: center; justify-content: center;
+        }
+        .gauge-center {
+            position: absolute; text-align: center;
+        }
+        .gauge-center h2 { font-family: 'JetBrains Mono'; font-size: 3rem; font-weight: 800; color: var(--primary); }
+
+        /* Form Controls */
+        .action-card { margin-bottom: 30px; }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
         
-        body { 
-            font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); 
-            margin: 0; padding: 0; min-height: 100vh;
-            background-image: radial-gradient(circle at 50% 0%, #0f172a 0%, #020617 100%);
+        input, select {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            color: white;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+        input:focus { outline: none; border-color: var(--primary); background: rgba(15, 23, 42, 1); }
+
+        button {
+            background: var(--primary);
+            color: #020617;
+            border: none;
+            padding: 16px 28px;
+            border-radius: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        button:hover { transform: scale(1.02); filter: brightness(1.1); }
+
+        /* Table Design */
+        .table-area { overflow-x: auto; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th { text-align: left; padding: 20px; font-size: 11px; color: var(--text-dim); text-transform: uppercase; border-bottom: 1px solid var(--border); }
+        td { padding: 20px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
+        
+        .badge {
+            padding: 6px 12px; border-radius: 8px; font-size: 10px; font-weight: 800;
+        }
+        .badge-pemasukan { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .badge-pengeluaran { background: rgba(244, 63, 94, 0.1); color: var(--danger); }
+
+        /* Terminal Logs */
+        .terminal {
+            background: #000; border-radius: 15px; padding: 15px; font-family: 'JetBrains Mono'; font-size: 11px;
+            color: #4ade80; height: 100px; overflow-y: auto; margin-top: 20px; border: 1px solid #1e293b;
         }
 
-        .container { 
-            max-width: 1200px; margin: auto; padding: 25px; 
-            animation: fadeInUp 0.8s ease forwards;
+        #login-screen {
+            position: fixed; inset: 0; background: var(--bg); z-index: 1000;
+            display: flex; align-items: center; justify-content: center;
         }
 
-        /* --- CARD STYLE --- */
-        .card { 
-            background: var(--card); padding: 25px; border-radius: 24px; 
-            border: 1px solid var(--border); backdrop-filter: blur(15px);
-            position: relative; overflow: hidden;
-        }
-        .card:hover { 
-            border-color: var(--primary); 
-            background: rgba(15, 23, 42, 0.9);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        .card-stat:hover { transform: scale(1.02); animation: pulseGlow 2s infinite; }
-
-        /* --- STATS & GRIDS --- */
-        .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 25px; }
-        .grid-main { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin-bottom: 25px; }
-        @media (max-width: 900px) { .grid-main { grid-template-columns: 1fr; } }
-
-        .label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; }
-        .big-val { font-size: 2rem; font-weight: 800; font-family: 'JetBrains Mono'; margin-top: 10px; }
-
-        /* --- PROGRESS CHART --- */
-        .chart-box { position: relative; height: 250px; display: flex; align-items: center; justify-content: center; }
-        .chart-info { position: absolute; text-align: center; top: 55%; transform: translateY(-50%); }
-        .percent-text { font-size: 2.5rem; font-weight: 800; color: var(--primary); font-family: 'JetBrains Mono'; }
-
-        /* --- TABLE STYLE --- */
-        .table-wrap { overflow-x: auto; margin-top: 15px; border-radius: 15px; border: 1px solid var(--border); }
-        table { width: 100%; border-collapse: collapse; background: rgba(0,0,0,0.2); }
-        th { padding: 15px; text-align: left; font-size: 11px; color: #64748b; background: rgba(15, 23, 42, 0.5); }
-        td { padding: 15px; border-top: 1px solid var(--border); font-size: 14px; }
-        tr:hover td { background: rgba(56, 189, 248, 0.05); }
-
-        /* --- FORM & INPUT --- */
-        .input-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-top: 20px; }
-        input, select { 
-            background: #0f172a; border: 1px solid var(--border); color: #fff; padding: 14px; 
-            border-radius: 12px; width: 100%; outline: none;
-        }
-        input:focus { border-color: var(--primary); box-shadow: 0 0 10px var(--glow); }
-
-        /* --- BUTTONS --- */
-        button { 
-            cursor: pointer; border-radius: 12px; font-weight: 700; border: none; 
-            padding: 14px 24px; display: flex; align-items: center; gap: 8px; justify-content: center;
-        }
-        .btn-main { background: var(--primary); color: #020617; }
-        .btn-main:hover { transform: translateY(-3px); box-shadow: 0 5px 15px var(--glow); }
-        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
-        .btn-outline:hover { background: var(--border); }
-
-        /* --- LOGIN --- */
-        #login-screen { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 9999; transition: 0.5s; }
-        .login-box { text-align: center; animation: float 4s infinite ease-in-out; }
-
-        #pdf-template { display: none; background: white; color: black; padding: 40px; }
+        #pdf-template { display: none; background: white; color: black; padding: 50px; }
     </style>
 </head>
 <body>
 
 <div id="login-screen">
-    <div class="login-box card" style="width: 350px;">
-        <h2 style="margin-bottom: 5px;">Sentinel <span style="color:var(--primary)">Finance</span></h2>
-        <p style="font-size: 12px; color: #64748b; margin-bottom: 25px;">MASUKKAN KODE OTORISASI</p>
-        <input type="password" id="passInput" placeholder="••••••••" style="text-align: center; font-size: 20px; letter-spacing: 5px; margin-bottom: 20px;">
-        <button onclick="login()" class="btn-main" style="width: 100%;">AUTHENTICATE</button>
+    <div class="card animate-reveal" style="width: 380px; text-align: center;">
+        <div style="font-size: 40px; margin-bottom: 20px;">🛡️</div>
+        <h2 style="margin-bottom: 10px;">Security Check</h2>
+        <p style="color: var(--text-dim); font-size: 13px; margin-bottom: 25px;">Masukkan Kode Otoritas Sentinel</p>
+        <input type="password" id="passInput" placeholder="••••••••" style="text-align: center; letter-spacing: 6px; font-size: 20px; margin-bottom: 20px;">
+        <button onclick="login()" style="width: 100%;">AUTHENTICATE</button>
     </div>
 </div>
 
 <div id="main-content" class="container" style="display: none;">
-    <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-        <div>
-            <h1 style="margin:0; font-size: 24px; font-weight: 800;">DASHBOARD_<span style="color:var(--primary)">ASSET</span></h1>
-            <div id="sync-status" style="font-size: 10px; color: var(--success); font-family: 'JetBrains Mono'; margin-top: 5px;">● SYSTEM_READY</div>
+    <header class="animate-reveal">
+        <div class="logo-area">
+            <h1>SENTINEL<span>_VAULT</span></h1>
+            <p id="realtime-clock" style="color: var(--text-dim); font-size: 12px; margin-top: 5px; font-family: 'JetBrains Mono';"></p>
         </div>
         <div style="display: flex; gap: 12px;">
-            <button onclick="downloadPDF()" class="btn-outline">EXPORT REPORT</button>
-            <button onclick="logout()" class="btn-outline" style="color: var(--danger);">LOGOUT</button>
+            <button onclick="downloadPDF()" style="background: transparent; border: 1px solid var(--border); color: white;">REPORT.PDF</button>
+            <button onclick="logout()" style="background: var(--danger); color: white;">LOCK_VAULT</button>
         </div>
     </header>
 
-    <div class="grid3">
-        <div class="card card-stat">
-            <span class="label">Total Aset Aktif</span>
-            <div id="v-asset" class="big-val" style="color:var(--success)">Rp 0</div>
+    <div class="stats-grid">
+        <div class="card animate-reveal" style="animation-delay: 0.1s;">
+            <div class="stat-label">Liquidity Portfolio</div>
+            <div id="v-asset" class="stat-value" style="color: var(--success);">Rp 0</div>
+            <div style="font-size: 11px; color: var(--text-dim);">+2.4% From last sync</div>
         </div>
-        <div class="card card-stat">
-            <span class="label">Arus Kas Keluar</span>
-            <div id="v-exp" class="big-val" style="color:var(--danger)">Rp 0</div>
+        <div class="card animate-reveal" style="animation-delay: 0.2s;">
+            <div class="stat-label">Total Outflow</div>
+            <div id="v-exp" class="stat-value" style="color: var(--danger);">Rp 0</div>
+            <div style="font-size: 11px; color: var(--text-dim);">Monitoring 32 active sectors</div>
         </div>
-        <div class="card card-stat">
-            <span class="label">Likuiditas Bersih</span>
-            <div id="v-net" class="big-val" style="color:var(--primary)">Rp 0</div>
+        <div class="card animate-reveal" style="animation-delay: 0.3s;">
+            <div class="stat-label">Net Balance</div>
+            <div id="v-net" class="stat-value" style="color: var(--primary);">Rp 0</div>
+            <div style="font-size: 11px; color: var(--text-dim);">Secured in obsidian vault</div>
         </div>
     </div>
 
-    <div class="grid-main">
-        <!-- Target Dana Darurat -->
-        <div class="card">
-            <h3 class="label" style="margin-bottom: 20px; color:var(--text)">Target Dana Darurat</h3>
-            <div class="chart-box">
-                <canvas id="chartPie"></canvas>
-                <div class="chart-info">
-                    <div id="perc-val" class="percent-text">0%</div>
-                    <div class="label" style="font-size: 9px;">Dari Rp 20 Juta</div>
+    <div class="target-section">
+        <div class="card animate-reveal" style="animation-delay: 0.4s;">
+            <div class="stat-label" style="text-align: center;">Emergency Fund Target</div>
+            <div class="gauge-container">
+                <canvas id="gaugeChart"></canvas>
+                <div class="gauge-center">
+                    <h2 id="perc-text">0%</h2>
+                    <p class="stat-label" style="font-size: 9px;">Target: 20M</p>
                 </div>
             </div>
-            <div style="margin-top: 20px; text-align: center; padding: 10px; background: rgba(56,189,248,0.1); border-radius: 12px;">
-                <span style="font-size: 12px; font-weight: 600;">Status: </span>
-                <span id="target-status" style="font-size: 12px; color: var(--primary);">Collecting...</span>
-            </div>
         </div>
-
-        <!-- Chart Tren -->
-        <div class="card">
-            <h3 class="label" style="margin-bottom: 20px; color:var(--text)">Analisis Arus Kas</h3>
-            <div style="height: 300px;">
-                <canvas id="chartLine"></canvas>
+        <div class="card animate-reveal" style="animation-delay: 0.5s;">
+            <div class="stat-label">Cashflow Analytics</div>
+            <div style="height: 250px; margin-top: 20px;">
+                <canvas id="mainChart"></canvas>
             </div>
         </div>
     </div>
 
-    <!-- Input Form -->
-    <div class="card" style="margin-bottom: 25px;">
-        <h3 class="label" style="margin-bottom: 5px; color:var(--text)">Registrasi Transaksi</h3>
-        <div class="input-group">
-            <div><label class="label">Vektor</label>
-                <select id="f-kat">
-                    <option value="pemasukan">PEMASUKAN</option>
-                    <option value="pengeluaran">PENGELUARAN</option>
-                    <option value="investasi">INVESTASI</option>
-                    <option value="dana_darurat">DANA DARURAT</option>
-                </select>
-            </div>
-            <div><label class="label">Deskripsi</label><input type="text" id="f-desc" placeholder="Identifier..."></div>
-            <div><label class="label">Nominal (Rp)</label><input type="number" id="f-amt" placeholder="0"></div>
-            <button onclick="simpan()" class="btn-main">EXECUTE_COMMIT</button>
-        </div>
-    </div>
-
-    <!-- Ledger Table -->
-    <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h3 class="label" style="color:var(--text)">Ledger Transaksi</h3>
-            <select id="filterBulan" onchange="loadTable()" style="width: auto; padding: 5px 15px;">
-                <option value="all">SEMUA PERIODE</option>
-                <option value="0">JANUARI</option><option value="1">FEBRUARI</option><option value="2">MARET</option>
-                <option value="3">APRIL</option><option value="4">MEI</option><option value="5">JUNI</option>
-                <option value="6">JULI</option><option value="7">AGUSTUS</option><option value="8">SEPTEMBER</option>
-                <option value="9">OKTOBER</option><option value="10">NOVEMBER</option><option value="11">DESEMBER</option>
+    <div class="card action-card animate-reveal" style="animation-delay: 0.6s;">
+        <h3 class="stat-label" style="color: var(--text-main);">Commit New Transaction</h3>
+        <div class="form-row">
+            <select id="f-kat">
+                <option value="pemasukan">INFLOW (CREDIT)</option>
+                <option value="pengeluaran">OUTFLOW (DEBIT)</option>
+                <option value="investasi">INVESTMENT</option>
+                <option value="dana_darurat">EMERGENCY FUND</option>
             </select>
+            <input type="text" id="f-desc" placeholder="Transaction Identifier...">
+            <input type="number" id="f-amt" placeholder="Amount (IDR)">
+            <button onclick="simpan()" id="btn-simpan">COMMIT_TRANSACTION</button>
         </div>
-        <div class="table-wrap">
+    </div>
+
+    <div class="card animate-reveal" style="animation-delay: 0.7s; padding: 0;">
+        <div style="padding: 30px 30px 10px 30px;">
+            <h3 class="stat-label" style="color: var(--text-main);">Ledger Records</h3>
+        </div>
+        <div class="table-area">
             <table>
                 <thead>
                     <tr>
-                        <th>TIMESTAMP</th>
-                        <th>KATEGORI</th>
-                        <th>IDENTIFIER</th>
-                        <th style="text-align: right;">VALUE</th>
-                        <th style="text-align: center;">AKSI</th>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Identifier</th>
+                        <th style="text-align: right;">Value</th>
+                        <th style="text-align: center;">Status</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
             </table>
         </div>
     </div>
+
+    <div class="terminal animate-reveal" id="logs">
+        > [SYSTEM] Initializing Sentinel X Security...<br>
+        > [AUTH] Handshake success with remote server...<br>
+        > [DATA] Assets loaded successfully.
+    </div>
 </div>
 
+<!-- PDF Hidden Template -->
 <div id="pdf-template">
-    <h1 style="text-align:center;">OFFICIAL FINANCIAL REPORT</h1>
-    <div id="pdf-header"></div>
-    <table style="width: 100%; border-collapse: collapse;">
-        <thead><tr style="background:#f1f5f9"><th>Tanggal</th><th>Deskripsi</th><th>Kategori</th><th style="text-align:right">Nominal</th></tr></thead>
+    <h1 style="text-align:center; border-bottom: 2px solid #000;">SENTINEL ASSET REPORT</h1>
+    <div id="pdf-header" style="margin: 30px 0;"></div>
+    <table style="width: 100%; border: 1px solid #000; border-collapse: collapse;">
+        <thead><tr style="background:#eee"><th>Tanggal</th><th>Deskripsi</th><th>Kategori</th><th style="text-align:right">Nominal</th></tr></thead>
         <tbody id="pdf-table-body"></tbody>
     </table>
 </div>
 
 <script>
     const API = "https://finance-worker.ebeneserpinem6.workers.dev";
-    const TARGET_DARURAT = 20000000;
-    let myPieChart, myLineChart;
+    const TARGET_EMERGENCY = 20000000;
+    let gaugeChart, lineChart;
+
+    // Time Clock
+    setInterval(() => {
+        document.getElementById('realtime-clock').innerText = new Date().toLocaleString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }).toUpperCase();
+    }, 1000);
+
+    function addLog(msg) {
+        const div = document.getElementById('logs');
+        div.innerHTML += `<br> > [${new Date().toLocaleTimeString()}] ${msg}`;
+        div.scrollTop = div.scrollHeight;
+    }
 
     function login() {
         if(document.getElementById('passInput').value === "12345") {
-            localStorage.setItem("session", "valid");
+            localStorage.setItem("sentinel_auth", "true");
             checkAuth();
-        } else { alert("ACCESS_DENIED: Invalid Password"); }
+        } else {
+            addLog("AUTH_FAILED: Invalid security code.");
+            alert("Kode Salah!");
+        }
     }
-    
-    function logout() { localStorage.removeItem("session"); location.reload(); }
-    
+
+    function logout() { localStorage.removeItem("sentinel_auth"); location.reload(); }
+
     function checkAuth() {
-        if(localStorage.getItem("session")) {
-            document.getElementById('login-screen').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('main-content').style.display = 'block';
-                refresh();
-            }, 500);
+        if(localStorage.getItem("sentinel_auth")) {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('main-content').style.display = 'block';
+            document.getElementById('main-content').classList.add('animate-reveal');
+            refresh();
         }
     }
 
     async function refresh() {
-        const res = await fetch(API + "/api/data");
-        const d = await res.json();
-        
-        // Perhitungan Inti (Original Logic)
-        document.getElementById("v-asset").innerText = "Rp " + d.totalAsset.toLocaleString('id-ID');
-        document.getElementById("v-exp").innerText = "Rp " + d.pengeluaran.toLocaleString('id-ID');
-        document.getElementById("v-net").innerText = "Rp " + d.saldoBersih.toLocaleString('id-ID');
+        addLog("Syncing database...");
+        try {
+            const res = await fetch(API + "/api/data");
+            const d = await res.json();
+            
+            document.getElementById("v-asset").innerText = "Rp " + d.totalAsset.toLocaleString('id-ID');
+            document.getElementById("v-exp").innerText = "Rp " + d.pengeluaran.toLocaleString('id-ID');
+            document.getElementById("v-net").innerText = "Rp " + d.saldoBersih.toLocaleString('id-ID');
 
-        updateProgressChart(d.dana_darurat);
-        loadTable();
+            updateGauge(d.dana_darurat);
+            loadTable();
+            addLog("Data integrity verified.");
+        } catch(e) { addLog("CRITICAL_ERROR: Sync failed."); }
     }
 
-    function updateProgressChart(current) {
-        const perc = Math.min(Math.round((current / TARGET_DARURAT) * 100), 100);
-        document.getElementById("perc-val").innerText = perc + "%";
-        document.getElementById("target-status").innerText = current >= TARGET_DARURAT ? "TARGET_ACHIEVED" : "IN_PROGRESS";
+    function updateGauge(val) {
+        const perc = Math.min(Math.round((val / TARGET_EMERGENCY) * 100), 100);
+        document.getElementById('perc-text').innerText = perc + "%";
         
-        const ctx = document.getElementById('chartPie');
-        if(myPieChart) myPieChart.destroy();
-        myPieChart = new Chart(ctx, {
+        const ctx = document.getElementById('gaugeChart');
+        if(gaugeChart) gaugeChart.destroy();
+        gaugeChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
                 datasets: [{
-                    data: [current, Math.max(0, TARGET_DARURAT - current)],
-                    backgroundColor: ['#38bdf8', '#1e293b'],
+                    data: [val, TARGET_EMERGENCY - val],
+                    backgroundColor: ['#0ea5e9', '#1e293b'],
                     borderWidth: 0,
-                    borderRadius: 20
+                    borderRadius: 30,
+                    cutout: '85%'
                 }]
             },
             options: {
-                cutout: '85%',
-                rotation: -90,
-                circumference: 360,
+                responsive: true,
+                maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
-                maintainAspectRatio: false
+                animation: { duration: 2000, easing: 'easeOutQuart' }
             }
         });
     }
@@ -299,106 +348,13 @@
     async function loadTable() {
         const res = await fetch(API + "/api/transaksi");
         let list = await res.json();
-        const filterVal = document.getElementById('filterBulan').value;
+        list.sort((a,b) => new Date(b.tanggal) - new Date(a.tanggal));
 
-        list.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
-        if(filterVal !== "all") list = list.filter(t => new Date(t.tanggal).getMonth() == filterVal);
-
-        document.getElementById("tableBody").innerHTML = list.map(t => `
+        document.getElementById("tableBody").innerHTML = list.slice(0, 10).map(t => `
             <tr>
-                <td style="font-family:monospace; color:#64748b">${new Date(t.tanggal).toLocaleDateString('id-ID')}</td>
-                <td><span style="font-size:9px; padding:3px 8px; border-radius:5px; background:rgba(56,189,248,0.1); color:var(--primary)">${t.kategori.toUpperCase()}</span></td>
-                <td style="font-weight:600">${t.deskripsi}</td>
-                <td style="text-align:right; font-family:'JetBrains Mono'; font-weight:bold; color:${t.kategori === 'pengeluaran' ? 'var(--danger)' : 'var(--success)'}">
+                <td style="font-family: 'JetBrains Mono'; font-size: 12px;">${new Date(t.tanggal).toLocaleDateString()}</td>
+                <td><span class="badge badge-${t.kategori}">${t.kategori.toUpperCase()}</span></td>
+                <td style="font-weight: 600;">${t.deskripsi}</td>
+                <td style="text-align: right; font-family: 'JetBrains Mono'; font-weight: bold; color: ${t.kategori === 'pengeluaran' ? 'var(--danger)' : 'var(--success)'}">
                     ${t.kategori === 'pengeluaran' ? '-' : '+'} ${t.jumlah.toLocaleString('id-ID')}
                 </td>
-                <td style="text-align:center"><button onclick="hapus('${t.id}')" style="background:rgba(244,63,94,0.1); color:var(--danger); padding:5px 10px; font-size:10px; margin:auto">Hapus</button></td>
-            </tr>
-        `).join("");
-
-        updateLineChart(list);
-    }
-
-    async function simpan() {
-        const btn = document.querySelector("button[onclick='simpan()']");
-        const desc = document.getElementById('f-desc').value;
-        const amt = document.getElementById('f-amt').value;
-        if(!desc || !amt) return;
-
-        btn.innerText = "COMMITTING..."; btn.disabled = true;
-
-        await fetch(API + "/api/tambah", { 
-            method: "POST", 
-            body: JSON.stringify({
-                deskripsi: desc,
-                jumlah: parseFloat(amt),
-                kategori: document.getElementById('f-kat').value,
-                email_id: "user@mail.com"
-            }) 
-        });
-
-        document.getElementById('f-desc').value = ""; document.getElementById('f-amt').value = "";
-        btn.innerText = "EXECUTE_COMMIT"; btn.disabled = false;
-        refresh();
-    }
-
-    async function hapus(id) {
-        if(confirm("Hapus record ini?")) {
-            await fetch(`${API}/api/hapus?id=${id}`, { method: "DELETE" });
-            refresh();
-        }
-    }
-
-    function updateLineChart(data) {
-        const ctx = document.getElementById('chartLine');
-        if(myLineChart) myLineChart.destroy();
-
-        const sortedData = [...data].sort((a, b) => new Date(a.tanggal) - new Date(b.tanggal));
-        const labels = sortedData.map(t => new Date(t.tanggal).toLocaleDateString('id-ID', {day:'2-digit', month:'short'}));
-        
-        let runningTotal = 0;
-        const dataPoints = sortedData.map(t => {
-            if(t.kategori === 'pengeluaran') runningTotal -= t.jumlah;
-            else runningTotal += t.jumlah;
-            return runningTotal;
-        });
-
-        myLineChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: dataPoints,
-                    borderColor: '#38bdf8',
-                    borderWidth: 3,
-                    fill: true,
-                    backgroundColor: 'rgba(56, 189, 248, 0.05)',
-                    tension: 0.4,
-                    pointRadius: 0
-                }]
-            },
-            options: {
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } },
-                    x: { grid: { display: false }, ticks: { color: '#64748b' } }
-                }
-            }
-        });
-    }
-
-    function downloadPDF() {
-        const area = document.getElementById('pdf-template');
-        document.getElementById('pdf-table-body').innerHTML = Array.from(document.querySelectorAll("#tableBody tr")).map(tr => {
-            const cells = tr.querySelectorAll("td");
-            return `<tr><td>${cells[0].innerText}</td><td>${cells[2].innerText}</td><td>${cells[1].innerText}</td><td style="text-align:right">${cells[3].innerText}</td></tr>`;
-        }).join("");
-        area.style.display = 'block';
-        html2pdf().from(area).save().then(() => area.style.display = 'none');
-    }
-
-    checkAuth();
-</script>
-</body>
-</html>
