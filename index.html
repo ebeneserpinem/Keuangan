@@ -12,18 +12,16 @@
 
 <style>
 
-/* ===== GLOBAL ===== */
-
 *{box-sizing:border-box}
 
 body{
 margin:0;
 font-family:'Poppins',sans-serif;
-background:linear-gradient(135deg,#020617,#020617,#0f172a,#020617);
+background:linear-gradient(135deg,#020617,#0f172a);
 color:white;
 }
 
-/* ===== LOGIN ===== */
+/* LOGIN */
 
 #loginScreen{
 height:100vh;
@@ -35,17 +33,11 @@ align-items:center;
 .loginBox{
 background:rgba(30,41,59,.7);
 backdrop-filter:blur(20px);
-padding:45px;
-border-radius:20px;
-width:340px;
+padding:40px;
+border-radius:18px;
+width:330px;
 text-align:center;
 box-shadow:0 20px 60px rgba(0,0,0,.6);
-animation:fade .6s ease;
-}
-
-@keyframes fade{
-from{opacity:0;transform:translateY(20px)}
-to{opacity:1}
 }
 
 input{
@@ -75,11 +67,9 @@ transform:translateY(-2px);
 box-shadow:0 5px 20px rgba(56,189,248,.4);
 }
 
-/* ===== LAYOUT ===== */
+/* APP */
 
-#app{
-display:none;
-}
+#app{display:none}
 
 .container{
 display:flex;
@@ -89,8 +79,8 @@ min-height:100vh;
 /* SIDEBAR */
 
 .sidebar{
-width:240px;
-background:rgba(2,6,23,.9);
+width:230px;
+background:#020617;
 padding:25px;
 border-right:1px solid #1e293b;
 }
@@ -98,12 +88,8 @@ border-right:1px solid #1e293b;
 .logo{
 font-size:20px;
 font-weight:600;
-margin-bottom:30px;
 color:#38bdf8;
-}
-
-.menu{
-margin-top:20px;
+margin-bottom:30px;
 }
 
 .menu div{
@@ -111,7 +97,6 @@ padding:12px;
 border-radius:10px;
 cursor:pointer;
 margin-bottom:10px;
-transition:.2s;
 }
 
 .menu div:hover{
@@ -131,23 +116,23 @@ backdrop-filter:blur(14px);
 border:1px solid #334155;
 border-radius:18px;
 padding:22px;
-margin-bottom:22px;
+margin-bottom:20px;
 box-shadow:0 10px 30px rgba(0,0,0,.35);
-animation:fade .4s ease;
 }
 
-/* STATS */
-
-.grid{
+.grid4{
 display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
 gap:20px;
 }
 
-.stat{
-font-size:13px;
-opacity:.7;
+.chartGrid{
+display:grid;
+grid-template-columns:2fr 1fr;
+gap:20px;
 }
+
+.stat{opacity:.7;font-size:13px}
 
 .big{
 font-size:26px;
@@ -176,34 +161,20 @@ tr:hover{
 background:rgba(255,255,255,.03);
 }
 
-/* FORM */
-
-.formGrid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-gap:12px;
-}
-
 .nominal{
 font-family:monospace;
 font-weight:bold;
 }
 
-/* HEADER */
-
-.topbar{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:20px;
-}
-
-.logout{
-background:#ef4444;
-}
-
 canvas{
 margin-top:15px;
+max-height:260px; /* GRAPH DIPERKECIL */
+}
+
+.formGrid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+gap:12px;
 }
 
 </style>
@@ -228,9 +199,7 @@ margin-top:15px;
 
 <div class="sidebar">
 <div class="logo">💰 MyFinance</div>
-
 <div class="menu">
-<div>Dashboard</div>
 <div onclick="downloadPDF()">Export PDF</div>
 <div onclick="logout()">Logout</div>
 </div>
@@ -238,10 +207,8 @@ margin-top:15px;
 
 <div class="content">
 
-<div class="topbar">
 <h2>Finance Overview</h2>
-<span id="update"></span>
-</div>
+<p id="update"></p>
 
 <!-- NET -->
 <div class="card" style="text-align:center">
@@ -250,7 +217,7 @@ margin-top:15px;
 </div>
 
 <!-- STATS -->
-<div class="grid">
+<div class="grid4">
 
 <div class="card">
 <div class="stat">Asset</div>
@@ -274,10 +241,19 @@ margin-top:15px;
 
 </div>
 
-<!-- CHART -->
+<!-- CHARTS -->
+<div class="chartGrid">
+
 <div class="card">
 <h3>Grafik Keuangan</h3>
 <canvas id="chartLine"></canvas>
+</div>
+
+<div class="card">
+<h3>Komposisi Asset</h3>
+<canvas id="chartPie"></canvas>
+</div>
+
 </div>
 
 <!-- FORM -->
@@ -320,14 +296,13 @@ const API="https://finance-worker.ebeneserpinem6.workers.dev"
 const PASSWORD="123456"
 
 let chart
+let pieChart
 let idleTimer
-let loggedIn=false
 
 /* LOGIN */
 
 function login(){
 if(password.value===PASSWORD){
-loggedIn=true
 loginScreen.style.display="none"
 app.style.display="block"
 refreshDashboard()
@@ -342,7 +317,7 @@ alert("Session berakhir")
 location.reload()
 }
 
-/* AUTO LOGOUT */
+/* AUTO LOGOUT 3 MENIT */
 
 function resetIdle(){
 clearTimeout(idleTimer)
@@ -369,6 +344,8 @@ expense.innerText="Rp "+d.pengeluaran.toLocaleString('id-ID')
 
 update.innerText="Update "+new Date().toLocaleTimeString()
 
+/* LINE CHART */
+
 const chartData=await (await fetch(API+"/api/chart")).json()
 
 if(chart) chart.destroy()
@@ -381,6 +358,31 @@ datasets:[
 {label:'Asset',data:chartData.asset,borderColor:'#22c55e',tension:.3},
 {label:'Pengeluaran',data:chartData.pengeluaran,borderColor:'#ef4444',tension:.3}
 ]
+},
+options:{
+plugins:{legend:{labels:{color:'white'}}},
+scales:{
+x:{ticks:{color:'white'}},
+y:{ticks:{color:'white'}}
+}
+}
+})
+
+/* PIE CHART (TIDAK HILANG) */
+
+if(pieChart) pieChart.destroy()
+
+pieChart=new Chart(chartPie,{
+type:'pie',
+data:{
+labels:["Dana Darurat","Investasi"],
+datasets:[{
+data:[d.dana_darurat,d.investasi],
+backgroundColor:["#22c55e","#38bdf8"]
+}]
+},
+options:{
+plugins:{legend:{labels:{color:'white'}}}
 }
 })
 
@@ -406,7 +408,7 @@ Rp ${t.jumlah.toLocaleString('id-ID')}
 }).join("")
 }
 
-/* TAMBAH */
+/* TAMBAH TRANSAKSI */
 
 async function tambahTransaksi(){
 
