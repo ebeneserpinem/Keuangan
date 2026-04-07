@@ -1,97 +1,286 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finance Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; max-width: 1000px; margin: auto; padding: 20px; }
-        .card { background: #1e293b; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #334155; }
-        .grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; }
-        h2 { color: #38bdf8; margin: 0; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        th, td { padding: 12px; border-bottom: 1px solid #334155; text-align: left; }
-        .nominal { font-family: monospace; font-weight: bold; color: #10b981; }
-        .text-net { color: #38bdf8; font-size: 2.8em; font-weight: bold; margin: 10px 0; }
-        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finance Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+body{
+font-family:'Segoe UI',sans-serif;
+background:#0f172a;
+color:white;
+max-width:1100px;
+margin:auto;
+padding:20px;
+}
+
+.card{
+background:#1e293b;
+padding:20px;
+border-radius:15px;
+margin-bottom:20px;
+border:1px solid #334155;
+}
+
+.grid3{
+display:grid;
+grid-template-columns:1fr 1fr 1fr;
+gap:20px;
+}
+
+.grid2{
+display:grid;
+grid-template-columns:1fr 1.5fr;
+gap:20px;
+}
+
+h2{color:#38bdf8;margin:0}
+
+.big{
+font-size:2.5em;
+font-weight:bold;
+margin-top:10px;
+}
+
+.asset{color:#22c55e}
+.expense{color:#ef4444}
+.net{color:#38bdf8}
+
+table{
+width:100%;
+border-collapse:collapse;
+font-size:13px;
+}
+
+th,td{
+padding:10px;
+border-bottom:1px solid #334155;
+text-align:left;
+}
+
+.nominal{
+font-family:monospace;
+font-weight:bold;
+}
+
+.transfer{color:#38bdf8}
+.qris{color:#22c55e}
+
+@media(max-width:768px){
+.grid3{grid-template-columns:1fr}
+.grid2{grid-template-columns:1fr}
+}
+
+</style>
 </head>
+
 <body>
 
-    <div class="card" style="text-align: center; border-top: 4px solid #38bdf8;">
-        <h2>💰 Total Saldo Net</h2>
-        <div class="text-net" id="saldo-net">Rp 0</div>
-        <p style="color: #94a3b8; font-size: 0.9em;">Update Terakhir: <span id="last-update">-</span></p>
-    </div>
+<!-- NET SALDO -->
+<div class="card" style="text-align:center;border-top:4px solid #38bdf8">
+<h2>Net Saldo</h2>
+<div class="big net" id="net">Rp 0</div>
+<p style="color:#94a3b8;font-size:12px">
+Update: <span id="update">-</span>
+</p>
+</div>
 
-    <div class="grid">
-        <div class="card">
-            <h3>📊 Alokasi Dana</h3>
-            <div style="max-width: 280px; margin: auto;">
-                <canvas id="chartAlokasi"></canvas>
-            </div>
-        </div>
-        <div class="card">
-            <h3>📝 Transaksi Terakhir</h3>
-            <table id="table">
-                <thead>
-                    <tr>
-                        <th>Rekening</th>
-                        <th>Kategori</th>
-                        <th style="text-align: right;">Jumlah</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
-    </div>
+<!-- TOTAL SECTION -->
+<div class="grid3">
 
-    <script>
-        const API = "https://finance-worker.ebeneserpinem6.workers.dev";
-        let myChart;
+<div class="card">
+<h3>Asset</h3>
+<div class="big asset" id="asset">Rp 0</div>
+<small>Dana Darurat + Investasi</small>
+</div>
 
-        async function refreshDashboard() {
-            try {
-                // 1. Ambil Data Summary
-                const resData = await fetch(API + "/api/data");
-                const d = await resData.json();
-                
-                document.getElementById("saldo-net").innerText = "Rp " + d.saldo_net_display.toLocaleString('id-ID');
-                document.getElementById("last-update").innerText = new Date().toLocaleTimeString();
+<div class="card">
+<h3>Pengeluaran</h3>
+<div class="big expense" id="expense">Rp 0</div>
+<small>Total keluar bulan ini</small>
+</div>
 
-                const ctx = document.getElementById("chartAlokasi").getContext("2d");
-                if (myChart) myChart.destroy();
-                myChart = new Chart(ctx, {
-                    type: 'pie',
-                    data: {
-                        labels: ['Dana Darurat', 'Investasi', 'Pengeluaran'],
-                        datasets: [{
-                            data: [d.dana_darurat, d.investasi, d.pengeluaran],
-                            backgroundColor: ['#facc15', '#22c55e', '#ef4444'],
-                            borderWidth: 0
-                        }]
-                    },
-                    options: { plugins: { legend: { position: 'bottom', labels: { color: 'white' } } } }
-                });
+<div class="card">
+<h3>Dana Darurat</h3>
+<div class="big asset" id="darurat">Rp 0</div>
+</div>
 
-                // 2. Ambil List Transaksi
-                const resTable = await fetch(API + "/api/transaksi");
-                const list = await resTable.json();
-                const tbody = document.querySelector("#table tbody");
-                tbody.innerHTML = list.map(t => `
-                    <tr>
-                        <td><small style="color:#38bdf8">${t.no_rekening}</small><br>${t.tanggal}</td>
-                        <td>${t.kategori.toUpperCase()}</td>
-                        <td class="nominal" style="text-align:right">Rp ${t.jumlah.toLocaleString('id-ID')}</td>
-                    </tr>
-                `).join("");
+</div>
 
-            } catch (e) { console.error("Update failed", e); }
-        }
+<!-- CHART -->
+<div class="grid2">
 
-        refreshDashboard();
-        setInterval(refreshDashboard, 10000); // Auto-refresh tiap 10 detik
-    </script>
+<div class="card">
+<h3>Komposisi Keuangan</h3>
+<canvas id="chart"></canvas>
+</div>
+
+<div class="card">
+<h3>Investasi</h3>
+<div class="big asset" id="investasi">Rp 0</div>
+</div>
+
+</div>
+
+<!-- TRANSAKSI -->
+<div class="card">
+
+<h3>Transaksi Bulan Ini</h3>
+
+<table>
+
+<thead>
+<tr>
+<th>Tanggal</th>
+<th>Kategori</th>
+<th>Metode</th>
+<th>Rekening</th>
+<th style="text-align:right">Jumlah</th>
+</tr>
+</thead>
+
+<tbody id="table"></tbody>
+
+</table>
+
+</div>
+
+<script>
+
+const API="https://finance-worker.ebeneserpinem6.workers.dev"
+
+let chart
+
+async function refresh(){
+
+try{
+
+/* SUMMARY */
+
+const r=await fetch(API+"/api/data")
+const d=await r.json()
+
+const asset=d.dana_darurat+d.investasi
+
+document.getElementById("net").innerText=
+"Rp "+d.saldo_net_display.toLocaleString('id-ID')
+
+document.getElementById("asset").innerText=
+"Rp "+asset.toLocaleString('id-ID')
+
+document.getElementById("expense").innerText=
+"Rp "+d.pengeluaran.toLocaleString('id-ID')
+
+document.getElementById("darurat").innerText=
+"Rp "+d.dana_darurat.toLocaleString('id-ID')
+
+document.getElementById("investasi").innerText=
+"Rp "+d.investasi.toLocaleString('id-ID')
+
+document.getElementById("update").innerText=
+new Date().toLocaleTimeString()
+
+
+/* CHART */
+
+const ctx=document.getElementById("chart")
+
+if(chart) chart.destroy()
+
+chart=new Chart(ctx,{
+type:'pie',
+data:{
+labels:['Asset','Pengeluaran'],
+datasets:[{
+data:[asset,d.pengeluaran],
+backgroundColor:[
+'#22c55e',
+'#ef4444'
+],
+borderWidth:0
+}]
+},
+options:{
+plugins:{
+legend:{
+position:'bottom',
+labels:{color:'white'}
+}
+}
+}
+})
+
+
+/* TABLE */
+
+const res=await fetch(API+"/api/transaksi")
+const list=await res.json()
+
+const tbody=document.getElementById("table")
+
+tbody.innerHTML=list.map(t=>{
+
+let metode="Transfer"
+
+if(
+t.deskripsi &&
+t.deskripsi.toLowerCase().includes("qris")
+){
+metode="QRIS"
+}
+
+const date=new Date(t.tanggal)
+
+const tanggal=date.toLocaleDateString('id-ID')
+const waktu=date.toLocaleTimeString('id-ID')
+
+return`
+
+<tr>
+
+<td>
+${tanggal}<br>
+<small style="color:#94a3b8">${waktu}</small>
+</td>
+
+<td>${t.kategori}</td>
+
+<td class="${
+metode=="QRIS"?"qris":"transfer"
+}">
+${metode}
+</td>
+
+<td>${t.no_rekening}</td>
+
+<td class="nominal" style="text-align:right">
+Rp ${t.jumlah.toLocaleString('id-ID')}
+</td>
+
+</tr>
+
+`
+
+}).join("")
+
+
+}catch(e){
+
+console.log("update gagal",e)
+
+}
+
+}
+
+refresh()
+
+setInterval(refresh,10000)
+
+</script>
+
 </body>
 </html>
