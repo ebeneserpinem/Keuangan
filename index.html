@@ -2,179 +2,75 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Finance Dashboard</title>
+<title>Dashboard Keuangan</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/html2pdf.js"></script>
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
 
-*{box-sizing:border-box}
-
 body{
+font-family:Arial;
+background:#0f172a;
+color:white;
 margin:0;
-font-family:'Poppins',sans-serif;
-background:linear-gradient(135deg,#020617,#0f172a);
-color:white;
+padding:20px;
 }
-
-/* LOGIN */
-
-#loginScreen{
-height:100vh;
-display:flex;
-justify-content:center;
-align-items:center;
-}
-
-.loginBox{
-background:rgba(30,41,59,.7);
-backdrop-filter:blur(20px);
-padding:40px;
-border-radius:18px;
-width:330px;
-text-align:center;
-box-shadow:0 20px 60px rgba(0,0,0,.6);
-}
-
-input{
-width:100%;
-padding:12px;
-margin-top:12px;
-border-radius:10px;
-border:none;
-background:#020617;
-color:white;
-}
-
-button{
-background:linear-gradient(90deg,#38bdf8,#0ea5e9);
-border:none;
-padding:12px;
-border-radius:10px;
-cursor:pointer;
-color:white;
-font-weight:600;
-margin-top:12px;
-transition:.25s;
-}
-
-button:hover{
-transform:translateY(-2px);
-box-shadow:0 5px 20px rgba(56,189,248,.4);
-}
-
-/* APP */
-
-#app{display:none}
 
 .container{
-display:flex;
-min-height:100vh;
-}
-
-/* SIDEBAR */
-
-.sidebar{
-width:230px;
-background:#020617;
-padding:25px;
-border-right:1px solid #1e293b;
-}
-
-.logo{
-font-size:20px;
-font-weight:600;
-color:#38bdf8;
-margin-bottom:30px;
-}
-
-.menu div{
-padding:12px;
-border-radius:10px;
-cursor:pointer;
-margin-bottom:10px;
-}
-
-.menu div:hover{
-background:#1e293b;
-}
-
-/* CONTENT */
-
-.content{
-flex:1;
-padding:30px;
+max-width:1100px;
+margin:auto;
 }
 
 .card{
-background:rgba(30,41,59,.65);
-backdrop-filter:blur(14px);
-border:1px solid #334155;
-border-radius:18px;
-padding:22px;
+background:#1e293b;
+padding:20px;
+border-radius:12px;
 margin-bottom:20px;
-box-shadow:0 10px 30px rgba(0,0,0,.35);
+box-shadow:0 0 15px rgba(0,0,0,.3);
 }
 
-.grid4{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-gap:20px;
-}
-
-.chartGrid{
+.grid{
 display:grid;
 grid-template-columns:2fr 1fr;
 gap:20px;
 }
 
-.stat{opacity:.7;font-size:13px}
-
-.big{
-font-size:26px;
-font-weight:600;
-margin-top:6px;
+input,select,button{
+padding:8px;
+margin:5px;
+border-radius:6px;
+border:none;
 }
 
-.net{color:#38bdf8}
-.asset{color:#22c55e}
-.expense{color:#ef4444}
+button{
+background:#22c55e;
+color:white;
+cursor:pointer;
+}
 
-/* TABLE */
+button:hover{
+opacity:.85;
+}
 
 table{
 width:100%;
 border-collapse:collapse;
+margin-top:10px;
 }
 
-th,td{
-padding:12px;
+td,th{
+padding:8px;
 border-bottom:1px solid #334155;
-font-size:13px;
-}
-
-tr:hover{
-background:rgba(255,255,255,.03);
-}
-
-.nominal{
-font-family:monospace;
-font-weight:bold;
+text-align:left;
 }
 
 canvas{
-margin-top:15px;
-max-height:260px; /* GRAPH DIPERKECIL */
+max-height:260px;
 }
 
-.formGrid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-gap:12px;
+.deleteBtn{
+background:#ef4444;
 }
 
 </style>
@@ -182,67 +78,27 @@ gap:12px;
 
 <body>
 
-<!-- LOGIN -->
-<div id="loginScreen">
-<div class="loginBox">
-<h2>🔐 Finance Login</h2>
-<input type="password" id="password" placeholder="Password">
-<button onclick="login()">Login</button>
-<p id="error" style="color:#ef4444"></p>
-</div>
-</div>
-
-<!-- APP -->
-<div id="app">
-
 <div class="container">
 
-<div class="sidebar">
-<div class="logo">💰 MyFinance</div>
-<div class="menu">
-<div onclick="downloadPDF()">Export PDF</div>
-<div onclick="logout()">Logout</div>
-</div>
-</div>
-
-<div class="content">
-
-<h2>Finance Overview</h2>
-<p id="update"></p>
-
-<!-- NET -->
-<div class="card" style="text-align:center">
-<div class="stat">Net Saldo</div>
-<div class="big net" id="net">Rp 0</div>
-</div>
-
-<!-- STATS -->
-<div class="grid4">
+<h2>💰 Dashboard Keuangan</h2>
 
 <div class="card">
-<div class="stat">Asset</div>
-<div class="big asset" id="asset">Rp 0</div>
-</div>
 
-<div class="card">
-<div class="stat">Dana Darurat</div>
-<div class="big asset" id="darurat">Rp 0</div>
-</div>
+<input id="nama" placeholder="Nama transaksi">
+<input id="jumlah" type="number" placeholder="Jumlah">
+<select id="jenis">
+<option value="pemasukan">Pemasukan</option>
+<option value="pengeluaran">Pengeluaran</option>
+</select>
 
-<div class="card">
-<div class="stat">Investasi</div>
-<div class="big asset" id="investasi">Rp 0</div>
-</div>
+<select id="bulan"></select>
 
-<div class="card">
-<div class="stat">Pengeluaran</div>
-<div class="big expense" id="expense">Rp 0</div>
-</div>
+<button onclick="tambah()">Tambah</button>
+<button onclick="downloadPDF()">Download PDF</button>
 
 </div>
 
-<!-- CHARTS -->
-<div class="chartGrid">
+<div class="grid">
 
 <div class="card">
 <h3>Grafik Keuangan</h3>
@@ -256,183 +112,205 @@ gap:12px;
 
 </div>
 
-<!-- FORM -->
-<div class="card">
-<h3>Tambah Transaksi</h3>
-
-<div class="formGrid">
-<input id="f_kategori" placeholder="Kategori">
-<input id="f_tujuan" placeholder="Tujuan">
-<input id="f_jumlah" type="number" placeholder="Jumlah">
-<input id="f_deskripsi" placeholder="Deskripsi">
-</div>
-
-<button onclick="tambahTransaksi()">Tambah</button>
-</div>
-
-<!-- TABLE -->
 <div class="card">
 <h3>Daftar Transaksi</h3>
+
 <table>
 <thead>
 <tr>
-<th>Tanggal</th>
-<th>Kategori</th>
-<th>Tujuan</th>
-<th style="text-align:right">Jumlah</th>
+<th>Nama</th>
+<th>Jumlah</th>
+<th>Jenis</th>
+<th>Bulan</th>
+<th>Aksi</th>
 </tr>
 </thead>
-<tbody id="table"></tbody>
+
+<tbody id="tabel"></tbody>
+
 </table>
-</div>
 
 </div>
-</div>
+
 </div>
 
 <script>
 
-const API="https://finance-worker.ebeneserpinem6.workers.dev"
-const PASSWORD="123456"
+/////////////////////////
+// AUTO LOGOUT 3 MENIT
+/////////////////////////
+
+let timer
+function resetTimer(){
+clearTimeout(timer)
+timer=setTimeout(()=>{
+alert("Session habis (3 menit tidak aktif)")
+location.reload()
+},180000)
+}
+
+document.onclick=resetTimer
+document.onmousemove=resetTimer
+resetTimer()
+
+/////////////////////////
+// DATA STORAGE (NO COOKIE)
+/////////////////////////
+
+let data = JSON.parse(localStorage.getItem("trx")||"[]")
+
+/////////////////////////
+// BULAN SELECT
+/////////////////////////
+
+const bulanList=[
+"Januari","Februari","Maret","April","Mei","Juni",
+"Juli","Agustus","September","Oktober","November","Desember"
+]
+
+const bulanSelect=document.getElementById("bulan")
+
+bulanList.forEach((b,i)=>{
+let opt=document.createElement("option")
+opt.value=i
+opt.text=b
+bulanSelect.appendChild(opt)
+})
+
+/////////////////////////
+// TAMBAH TRANSAKSI
+/////////////////////////
+
+function tambah(){
+
+const nama=document.getElementById("nama").value
+const jumlah=Number(document.getElementById("jumlah").value)
+const jenis=document.getElementById("jenis").value
+const bulan=document.getElementById("bulan").value
+
+if(!nama||!jumlah)return alert("Isi data")
+
+data.push({nama,jumlah,jenis,bulan})
+
+simpan()
+render()
+}
+
+/////////////////////////
+// HAPUS TRANSAKSI
+/////////////////////////
+
+function hapus(index){
+if(confirm("Hapus transaksi?")){
+data.splice(index,1)
+simpan()
+render()
+}
+}
+
+function simpan(){
+localStorage.setItem("trx",JSON.stringify(data))
+}
+
+/////////////////////////
+// RENDER TABEL
+/////////////////////////
+
+function render(){
+
+const tbody=document.getElementById("tabel")
+tbody.innerHTML=""
+
+data.forEach((d,i)=>{
+tbody.innerHTML+=`
+<tr>
+<td>${d.nama}</td>
+<td>${d.jumlah}</td>
+<td>${d.jenis}</td>
+<td>${bulanList[d.bulan]}</td>
+<td><button class="deleteBtn" onclick="hapus(${i})">Hapus</button></td>
+</tr>`
+})
+
+updateChart()
+}
+
+/////////////////////////
+// CHART
+/////////////////////////
 
 let chart
 let pieChart
-let idleTimer
 
-/* LOGIN */
+function updateChart(){
 
-function login(){
-if(password.value===PASSWORD){
-loginScreen.style.display="none"
-app.style.display="block"
-refreshDashboard()
-startIdle()
-}else{
-error.innerText="Password salah"
-}
-}
+let pemasukan=0
+let pengeluaran=0
 
-function logout(){
-alert("Session berakhir")
-location.reload()
-}
+data.forEach(d=>{
+if(d.jenis==="pemasukan") pemasukan+=d.jumlah
+else pengeluaran+=d.jumlah
+})
 
-/* AUTO LOGOUT 3 MENIT */
-
-function resetIdle(){
-clearTimeout(idleTimer)
-idleTimer=setTimeout(logout,180000)
-}
-
-function startIdle(){
-["mousemove","click","keydown","scroll"]
-.forEach(e=>document.addEventListener(e,resetIdle))
-resetIdle()
-}
-
-/* DASHBOARD */
-
-async function refreshDashboard(){
-
-const d=await (await fetch(API+"/api/data")).json()
-
-net.innerText="Rp "+d.saldo_net_display.toLocaleString('id-ID')
-asset.innerText="Rp "+(d.dana_darurat+d.investasi).toLocaleString('id-ID')
-darurat.innerText="Rp "+d.dana_darurat.toLocaleString('id-ID')
-investasi.innerText="Rp "+d.investasi.toLocaleString('id-ID')
-expense.innerText="Rp "+d.pengeluaran.toLocaleString('id-ID')
-
-update.innerText="Update "+new Date().toLocaleTimeString()
-
-/* LINE CHART */
-
-const chartData=await (await fetch(API+"/api/chart")).json()
+const danaDarurat=pemasukan*0.2
+const investasi=pemasukan*0.3
 
 if(chart) chart.destroy()
 
-chart=new Chart(chartLine,{
-type:'line',
+chart=new Chart(
+document.getElementById("chartLine"),
+{
+type:'bar',
 data:{
-labels:chartData.bulan,
-datasets:[
-{label:'Asset',data:chartData.asset,borderColor:'#22c55e',tension:.3},
-{label:'Pengeluaran',data:chartData.pengeluaran,borderColor:'#ef4444',tension:.3}
-]
-},
-options:{
-plugins:{legend:{labels:{color:'white'}}},
-scales:{
-x:{ticks:{color:'white'}},
-y:{ticks:{color:'white'}}
-}
+labels:["Pemasukan","Pengeluaran"],
+datasets:[{
+label:"Total",
+data:[pemasukan,pengeluaran]
+}]
 }
 })
 
-/* PIE CHART (TIDAK HILANG) */
-
 if(pieChart) pieChart.destroy()
 
-pieChart=new Chart(chartPie,{
+pieChart=new Chart(
+document.getElementById("chartPie"),
+{
 type:'pie',
 data:{
 labels:["Dana Darurat","Investasi"],
 datasets:[{
-data:[d.dana_darurat,d.investasi],
-backgroundColor:["#22c55e","#38bdf8"]
+data:[danaDarurat,investasi]
 }]
-},
-options:{
-plugins:{legend:{labels:{color:'white'}}}
 }
 })
 
-loadTransaksi()
 }
 
-/* TABLE */
+/////////////////////////
+// DOWNLOAD PDF (FIX BUG)
+/////////////////////////
 
-async function loadTransaksi(){
-const list=await (await fetch(API+"/api/transaksi")).json()
+async function downloadPDF(){
 
-table.innerHTML=list.map(t=>{
-const date=new Date(t.tanggal)
-return `
-<tr>
-<td>${date.toLocaleDateString('id-ID')}</td>
-<td>${t.kategori}</td>
-<td>${t.tujuan ?? "-"}</td>
-<td class="nominal" style="text-align:right">
-Rp ${t.jumlah.toLocaleString('id-ID')}
-</td>
-</tr>`
-}).join("")
-}
+const { jsPDF } = window.jspdf
+const doc=new jsPDF()
 
-/* TAMBAH TRANSAKSI */
+doc.text("Laporan Keuangan",20,20)
 
-async function tambahTransaksi(){
+let y=30
 
-await fetch(API+"/api/transaksi",{
-method:"POST",
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({
-kategori:f_kategori.value,
-tujuan:f_tujuan.value,
-jumlah:Number(f_jumlah.value),
-deskripsi:f_deskripsi.value
-})
+data.forEach(d=>{
+doc.text(
+`${d.nama} | ${d.jumlah} | ${d.jenis} | ${bulanList[d.bulan]}`,
+20,y
+)
+y+=10
 })
 
-refreshDashboard()
+doc.save("laporan_keuangan.pdf")
 }
 
-/* PDF */
-
-function downloadPDF(){
-html2pdf().from(document.body).save("laporan_keuangan.pdf")
-}
-
-setInterval(refreshDashboard,10000)
+render()
 
 </script>
 
