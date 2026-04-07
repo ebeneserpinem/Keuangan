@@ -1,273 +1,40 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Finance Dashboard</title>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/html2pdf.js"></script>
-
-<style>
-
-body{
-font-family:'Segoe UI',sans-serif;
-background:#0f172a;
-color:white;
-max-width:1100px;
-margin:auto;
-padding:20px;
-}
-
-.card{
-background:#1e293b;
-padding:20px;
-border-radius:14px;
-margin-bottom:20px;
-border:1px solid #334155;
-}
-
-.grid4{
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:15px;
-}
-
-.gridChart{
-display:grid;
-grid-template-columns:2fr 1fr;
-gap:20px;
-}
-
-.big{
-font-size:1.8em;
-font-weight:bold;
-margin-top:8px;
-}
-
-.asset{color:#22c55e}
-.expense{color:#ef4444}
-.net{color:#38bdf8}
-
-canvas{
-max-height:240px;
-}
-
-table{
-width:100%;
-border-collapse:collapse;
-font-size:13px;
-}
-
-th,td{
-padding:10px;
-border-bottom:1px solid #334155;
-}
-
-button{
-background:#38bdf8;
-border:none;
-padding:7px 12px;
-border-radius:6px;
-cursor:pointer;
-color:white;
-}
-
-input,select{
-padding:6px;
-border-radius:6px;
-border:none;
-margin:5px;
-}
-
-</style>
-</head>
-
-<body>
-
-<!-- NET -->
-<div class="card" style="text-align:center">
-<h2>Net Saldo</h2>
-<div id="net" class="big net">Rp 0</div>
-</div>
-
-<!-- TOTAL -->
-<div class="grid4">
-
-<div class="card">
-Dana Darurat
-<div id="darurat" class="big asset">Rp 0</div>
-</div>
-
-<div class="card">
-Investasi
-<div id="investasi" class="big asset">Rp 0</div>
-</div>
-
-<div class="card">
-Pengeluaran
-<div id="expense" class="big expense">Rp 0</div>
-</div>
-
-<div class="card">
-Total Asset
-<div id="asset" class="big asset">Rp 0</div>
-</div>
-
-</div>
-
-<!-- FORM -->
-<div class="card">
-
-<h3>Tambah Transaksi</h3>
-
-<input id="nama" placeholder="Nama transaksi">
-
-<input id="jumlah" type="number" placeholder="Jumlah">
-
-<select id="jenis">
-<option value="darurat">Dana Darurat</option>
-<option value="investasi">Investasi</option>
-<option value="pengeluaran">Pengeluaran</option>
-</select>
-
-<select id="bulan">
-<option>Januari</option>
-<option>Februari</option>
-<option>Maret</option>
-<option>April</option>
-<option>Mei</option>
-<option>Juni</option>
-<option>Juli</option>
-<option>Agustus</option>
-<option>September</option>
-<option>Oktober</option>
-<option>November</option>
-<option>Desember</option>
-</select>
-
-<button onclick="tambah()">Tambah</button>
-<button onclick="downloadPDF()">Download PDF</button>
-
-</div>
-
-<!-- CHART -->
-<div class="gridChart">
-
-<div class="card">
-<h3>Grafik Keuangan</h3>
-<canvas id="chartLine"></canvas>
-</div>
-
-<div class="card">
-<h3>Komposisi Asset</h3>
-<canvas id="chartPie"></canvas>
-</div>
-
-</div>
-
-<!-- TABLE -->
-<div class="card">
-
-<h3>Daftar Transaksi</h3>
-
-<table>
-<thead>
-<tr>
-<th>Nama</th>
-<th>Jumlah</th>
-<th>Jenis</th>
-<th>Bulan</th>
-<th>Aksi</th>
-</tr>
-</thead>
-
-<tbody id="table"></tbody>
-
-</table>
-
-</div>
-
 <script>
 
-let data = JSON.parse(localStorage.getItem("finance")) || []
+const API="https://finance-worker.ebeneserpinem6.workers.dev"
 
 let chart
 let pieChart
 
-function rupiah(n){
-return "Rp "+n.toLocaleString('id-ID')
-}
+async function refreshDashboard(){
 
-function simpan(){
-localStorage.setItem("finance",JSON.stringify(data))
-}
+try{
 
-function tambah(){
+/* ================= SUMMARY ================= */
 
-const nama=document.getElementById("nama").value
-const jumlah=parseInt(document.getElementById("jumlah").value)
-const jenis=document.getElementById("jenis").value
-const bulan=document.getElementById("bulan").value
+const res=await fetch(API+"/api/data")
+const d=await res.json()
 
-if(!nama||!jumlah) return alert("Isi data")
+const asset=d.dana_darurat+d.investasi
 
-data.push({nama,jumlah,jenis,bulan})
+document.getElementById("net").innerText=
+"Rp "+d.saldo_net_display.toLocaleString('id-ID')
 
-simpan()
-render()
-}
+document.getElementById("darurat").innerText=
+"Rp "+d.dana_darurat.toLocaleString('id-ID')
 
-function hapus(i){
-if(confirm("Hapus transaksi?")){
-data.splice(i,1)
-simpan()
-render()
-}
-}
+document.getElementById("investasi").innerText=
+"Rp "+d.investasi.toLocaleString('id-ID')
 
-function render(){
+document.getElementById("expense").innerText=
+"Rp "+d.pengeluaran.toLocaleString('id-ID')
 
-let darurat=0
-let investasi=0
-let pengeluaran=0
+document.getElementById("asset").innerText=
+"Rp "+asset.toLocaleString('id-ID')
 
-data.forEach(d=>{
-if(d.jenis=="darurat") darurat+=d.jumlah
-if(d.jenis=="investasi") investasi+=d.jumlah
-if(d.jenis=="pengeluaran") pengeluaran+=d.jumlah
-})
+/* ================= LINE CHART ================= */
 
-const asset=darurat+investasi
-const net=asset-pengeluaran
-
-document.getElementById("darurat").innerText=rupiah(darurat)
-document.getElementById("investasi").innerText=rupiah(investasi)
-document.getElementById("expense").innerText=rupiah(pengeluaran)
-document.getElementById("asset").innerText=rupiah(asset)
-document.getElementById("net").innerText=rupiah(net)
-
-renderTable()
-renderChart(darurat,investasi,pengeluaran)
-}
-
-function renderTable(){
-
-const tbody=document.getElementById("table")
-
-tbody.innerHTML=data.map((d,i)=>`
-<tr>
-<td>${d.nama}</td>
-<td>${rupiah(d.jumlah)}</td>
-<td>${d.jenis}</td>
-<td>${d.bulan}</td>
-<td><button onclick="hapus(${i})">Hapus</button></td>
-</tr>
-`).join("")
-}
-
-function renderChart(darurat,investasi,pengeluaran){
+const chartRes=await fetch(API+"/api/chart")
+const data=await chartRes.json()
 
 const ctx=document.getElementById("chartLine")
 
@@ -276,22 +43,32 @@ if(chart) chart.destroy()
 chart=new Chart(ctx,{
 type:'line',
 data:{
-labels:["Dana Darurat","Investasi","Pengeluaran"],
-datasets:[{
-label:"Total",
-data:[darurat,investasi,pengeluaran],
-borderColor:"#38bdf8",
+labels:data.bulan,
+datasets:[
+{
+label:'Asset',
+data:data.asset,
+borderColor:'#22c55e',
 tension:0.3
-}]
+},
+{
+label:'Pengeluaran',
+data:data.pengeluaran,
+borderColor:'#ef4444',
+tension:0.3
+}
+]
 },
 options:{
-plugins:{legend:{labels:{color:"white"}}},
+plugins:{legend:{labels:{color:'white'}}},
 scales:{
-x:{ticks:{color:"white"}},
-y:{ticks:{color:"white"}}
+x:{ticks:{color:'white'}},
+y:{ticks:{color:'white'}}
 }
 }
 })
+
+/* ================= PIE CHART ================= */
 
 const pie=document.getElementById("chartPie")
 
@@ -302,30 +79,79 @@ type:'pie',
 data:{
 labels:["Dana Darurat","Investasi"],
 datasets:[{
-data:[darurat,investasi],
+data:[d.dana_darurat,d.investasi],
 backgroundColor:["#22c55e","#38bdf8"]
 }]
 },
 options:{
-plugins:{legend:{labels:{color:"white"}}}
+plugins:{legend:{labels:{color:'white'}}}
 }
 })
+
+/* ================= TABLE ================= */
+
+const resTable=await fetch(API+"/api/transaksi")
+const list=await resTable.json()
+
+const tbody=document.getElementById("table")
+
+tbody.innerHTML=list.map(t=>{
+
+const date=new Date(t.tanggal)
+
+return `
+<tr>
+<td>${date.toLocaleDateString('id-ID')}</td>
+<td>${t.kategori}</td>
+<td>${t.tujuan ?? "-"}</td>
+<td style="text-align:right">
+Rp ${t.jumlah.toLocaleString('id-ID')}
+</td>
+<td>
+<button onclick="hapus('${t.id}')">
+Hapus
+</button>
+</td>
+</tr>
+`
+
+}).join("")
+
+}catch(e){
+console.log("error",e)
 }
+
+}
+
+/* ================= HAPUS ================= */
+
+async function hapus(id){
+
+if(!confirm("Hapus transaksi?")) return
+
+await fetch(API+"/api/hapus?id="+id,{
+method:"DELETE"
+})
+
+refreshDashboard()
+}
+
+/* ================= PDF FIX ================= */
 
 function downloadPDF(){
 
-html2pdf().from(document.body).set({
+const element=document.body
+
+html2pdf().set({
 margin:10,
-filename:"laporan_keuangan.pdf",
+filename:'laporan_keuangan.pdf',
 html2canvas:{scale:2},
-jsPDF:{unit:"mm",format:"a4"}
-}).save()
+jsPDF:{unit:'mm',format:'a4'}
+}).from(element).save()
 
 }
 
-render()
+refreshDashboard()
+setInterval(refreshDashboard,10000)
 
 </script>
-
-</body>
-</html>
