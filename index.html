@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Finance Pro | Asset & Liquidity</title>
+    <title>Finance Asset Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
@@ -11,12 +11,12 @@
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
         .container { max-width: 1100px; margin: auto; }
         .card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; }
-        .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
-        .grid-main { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
+        .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
+        .grid-main { display: grid; grid-template-columns: 1.2fr 1.8fr; gap: 20px; }
         @media (max-width: 850px) { .grid-main { grid-template-columns: 1fr; } }
         
         input, select { width: 100%; padding: 10px; margin: 8px 0; border-radius: 8px; border: 1px solid var(--border); background: #0f172a; color: white; box-sizing: border-box; }
-        .big-val { font-size: 2em; font-weight: 800; margin-top: 5px; }
+        .big-val { font-size: 1.8em; font-weight: 800; margin-top: 5px; }
         .c-asset { color: var(--success); } .c-expense { color: var(--danger); } .c-net { color: var(--primary); }
         
         table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -33,7 +33,7 @@
 
 <div id="login-screen">
     <div class="card" style="width: 300px; text-align: center;">
-        <h3>Finance Dashboard</h3>
+        <h3>Asset Manager</h3>
         <input type="password" id="passInput" placeholder="Password">
         <button onclick="login()" style="width: 100%; margin-top: 10px;">Login</button>
     </div>
@@ -41,7 +41,7 @@
 
 <div id="main-content" class="container" style="display: none;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
-        <h2 style="margin:0">Dashboard Keuangan</h2>
+        <h2 style="margin:0">Dashboard Aset</h2>
         <div>
             <button onclick="downloadPDF()" style="background:#64748b">Export PDF</button>
             <button onclick="logout()" style="background:var(--danger)">Logout</button>
@@ -52,31 +52,31 @@
         <div class="grid3" style="align-items: end;">
             <div><label>Kategori</label>
                 <select id="f-kat">
-                    <option value="pemasukan">Pemasukan (Uang Masuk)</option>
+                    <option value="pemasukan">Pemasukan (Cash In)</option>
                     <option value="pengeluaran">Pengeluaran</option>
                     <option value="investasi">Investasi</option>
                     <option value="dana_darurat">Dana Darurat</option>
                 </select>
             </div>
-            <div><label>Deskripsi</label><input type="text" id="f-desc" placeholder="Contoh: Gaji / Beli Makan"></div>
+            <div><label>Deskripsi</label><input type="text" id="f-desc" placeholder="Keterangan transaksi"></div>
             <div><label>Nominal</label><input type="number" id="f-amt" placeholder="0"></div>
-            <button onclick="simpan()" style="background:var(--success); width: 100%;">Simpan Transaksi</button>
+            <button onclick="simpan()" style="background:var(--success); width: 100%;">Simpan</button>
         </div>
     </div>
 
     <div class="grid3">
-        <div class="card">Total Aset (Inv + Darurat)<div id="v-asset" class="big-val c-asset">Rp 0</div></div>
+        <div class="card">Total Aset (A+B)<div id="v-asset" class="big-val c-asset">Rp 0</div></div>
         <div class="card">Pengeluaran<div id="v-exp" class="big-val c-expense">Rp 0</div></div>
-        <div class="card">Saldo Bersih (Liquid)<div id="v-net" class="big-val c-net">Rp 0</div></div>
+        <div class="card">Saldo Bersih (Sisa)<div id="v-net" class="big-val c-net">Rp 0</div></div>
     </div>
 
     <div class="grid-main">
-        <div class="card">
-            <h3>Visualisasi Aset vs Pengeluaran</h3>
-            <canvas id="chartPie" style="max-height: 400px;"></canvas>
+        <div class="card" style="text-align: center;">
+            <h3>Porsi Aset</h3>
+            <canvas id="chartPie" style="max-height: 300px;"></canvas>
         </div>
         <div class="card">
-            <h3>Riwayat Transaksi</h3>
+            <h3>Riwayat</h3>
             <div style="overflow-y: auto; max-height: 400px;">
                 <table>
                     <thead><tr><th>Tanggal</th><th>Deskripsi</th><th class="nominal">Nominal</th><th>Aksi</th></tr></thead>
@@ -88,7 +88,7 @@
 </div>
 
 <div id="pdf-template">
-    <h1 style="text-align:center; border-bottom: 2px solid #000;">LAPORAN KEUANGAN PERSONAL</h1>
+    <h1 style="text-align:center; border-bottom: 2px solid #000;">LAPORAN ASET & KEUANGAN</h1>
     <div id="pdf-header" style="margin: 20px 0;"></div>
     <table style="width: 100%; border: 1px solid #000; border-collapse: collapse;">
         <thead><tr style="background:#eee"><th>Tanggal</th><th>Deskripsi</th><th>Kategori</th><th style="text-align:right">Nominal</th></tr></thead>
@@ -100,18 +100,14 @@
     const API = "https://finance-worker.ebeneserpinem6.workers.dev";
     let myChart, logoutTimer;
 
-    // --- LOGIKA AUTO LOGOUT (3 MENIT) ---
-    function resetTimer() { 
-        clearTimeout(logoutTimer); 
-        logoutTimer = setTimeout(logout, 180000); 
-    }
+    function resetTimer() { clearTimeout(logoutTimer); logoutTimer = setTimeout(logout, 180000); }
     window.onmousemove = resetTimer; window.onkeydown = resetTimer;
 
     function login() {
         if(document.getElementById('passInput').value === "12345") {
             localStorage.setItem("session", "valid");
             checkAuth();
-        } else { alert("Password Salah"); }
+        } else { alert("Salah"); }
     }
     function logout() { localStorage.removeItem("session"); location.reload(); }
     
@@ -131,7 +127,7 @@
         document.getElementById("v-exp").innerText = "Rp " + d.pengeluaran.toLocaleString('id-ID');
         document.getElementById("v-net").innerText = "Rp " + d.saldoBersih.toLocaleString('id-ID');
 
-        updateChart(d);
+        updateChart(d.investasi, d.dana_darurat);
         loadTable();
     }
 
@@ -161,26 +157,30 @@
     }
 
     async function hapus(id) {
-        if(confirm("Hapus data?")) {
+        if(confirm("Hapus?")) {
             await fetch(`${API}/api/hapus?id=${id}`, { method: "DELETE" });
             refresh();
         }
     }
 
-    function updateChart(d) {
+    function updateChart(inv, darurat) {
         const ctx = document.getElementById('chartPie');
         if(myChart) myChart.destroy();
         myChart = new Chart(ctx, {
-            type: 'doughnut',
+            type: 'pie', // Diubah ke Pie (lingkaran penuh)
             data: {
-                labels: ['Investasi', 'Dana Darurat', 'Pengeluaran'],
+                labels: ['Investasi', 'Dana Darurat'],
                 datasets: [{
-                    data: [d.investasi, d.dana_darurat, d.pengeluaran],
-                    backgroundColor: ['#22c55e', '#38bdf8', '#ef4444'],
+                    data: [inv, darurat],
+                    backgroundColor: ['#22c55e', '#38bdf8'],
                     borderWidth: 0
                 }]
             },
-            options: { plugins: { legend: { labels: { color: 'white' } } } }
+            options: { 
+                plugins: { 
+                    legend: { position: 'bottom', labels: { color: 'white' } } 
+                } 
+            }
         });
     }
 
@@ -191,7 +191,7 @@
             <p>Saldo Bersih: <b>${document.getElementById('v-net').innerText}</b></p>
         `;
         area.style.display = 'block';
-        html2pdf().from(area).set({ margin: 10, filename: 'Laporan.pdf' }).save().then(() => area.style.display = 'none');
+        html2pdf().from(area).set({ margin: 10, filename: 'Laporan_Aset.pdf' }).save().then(() => area.style.display = 'none');
     }
 
     checkAuth();
