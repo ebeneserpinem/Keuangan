@@ -444,51 +444,24 @@ function initApp() {
   refresh();
 }
 
-async function refresh() {
+  async function refresh() {
   try {
     const selMonth = parseInt(document.getElementById("filterMonth").value);
-    const selYear = parseInt(document.getElementById("filterYear").value);
+    const selYear  = parseInt(document.getElementById("filterYear").value);
+    const bulanStr = `${selYear}-${String(selMonth + 1).padStart(2, '0')}`;
 
-    const res = await fetch(API + "/api/transaksi");
-    const allData = await res.json();
+    // Kartu & Gauge → ALL-TIME
+    const resData = await fetch(API + "/api/data");
+    const stats   = await resData.json();
+    document.getElementById("v-asset").textContent = "Rp " + stats.totalAsset.toLocaleString("id-ID");
+    document.getElementById("v-exp").textContent   = "Rp " + stats.pengeluaran.toLocaleString("id-ID");
+    document.getElementById("v-net").textContent   = "Rp " + stats.saldoBersih.toLocaleString("id-ID");
+    updateGauge(stats.dana_darurat);
 
-    // FILTER DATA BULANAN
-    const filtered = allData.filter(t => {
-      const d = new Date(t.tanggal);
-      return d.getMonth() === selMonth && d.getFullYear() === selYear;
-    });
-
-    // AGREGASI DATA
-    let pemasukanTotal = 0;
-    let pengeluaranMurni = 0;
-    let investasiTotal = 0;
-    let daruratTotal = 0;
-
-    filtered.forEach(t => {
-      if (t.kategori === 'pemasukan') pemasukanTotal += t.jumlah;
-      else if (t.kategori === 'pengeluaran') pengeluaranMurni += t.jumlah;
-      else if (t.kategori === 'investasi') investasiTotal += t.jumlah;
-      else if (t.kategori === 'dana_darurat') daruratTotal += t.jumlah;
-    });
-
-    // ═══ PENERAPAN LOGIKA BARU ═══
-    
-    // 1. Pengeluaran = akumulasi pengeluaran + dana darurat + Investasi
-    const pengeluaranTotalDisplay = pengeluaranMurni + daruratTotal + investasiTotal;
-
-    // 2. Likuiditas Bersih = Pemasukan - Pengeluaran (Total Display)
-    const likuiditasBersih = pemasukanTotal - pengeluaranTotalDisplay;
-
-    // 3. Total Aset = Dana Darurat + Investasi
-    const totalAset = daruratTotal + investasiTotal;
-
-    // UPDATE STATS UI
-    document.getElementById("v-asset").textContent = "Rp " + totalAset.toLocaleString("id-ID");
-    document.getElementById("v-exp").textContent = "Rp " + pengeluaranTotalDisplay.toLocaleString("id-ID");
-    document.getElementById("v-net").textContent = "Rp " + likuiditasBersih.toLocaleString("id-ID");
-    
+    // Tabel & Grafik → filter per bulan
+    const resTx    = await fetch(`${API}/api/transaksi?bulan=${bulanStr}`);
+    const filtered = await resTx.json();
     updateTable(filtered);
-    updateGauge(daruratTotal);
     updateLineChart(filtered);
 
   } catch (e) {
